@@ -1,4 +1,4 @@
-package com.srbastian.timetonic
+package com.srbastian.timetonic.view
 
 import android.content.Context
 import android.content.Intent
@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.create
 import java.lang.Exception
 
 class LoginActivity : AppCompatActivity() {
@@ -51,7 +50,6 @@ class LoginActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val appKeyResponse = instance.createAppKey()
-//                val appKey = appKeyResponse.body()?.appkey ?: return@launch
                 if (!appKeyResponse.isSuccessful) {
                     handleError("Failed to get AppKey")
                     return@launch
@@ -64,8 +62,6 @@ class LoginActivity : AppCompatActivity() {
 
                 val oauthKeyResponse =
                     instance.createOauthkey(login = email, pwd = password, appkey = appKey)
-//                val oauthKey = oauthKeyResponse.body()?.oauthkey ?: return@launch
-                Log.d("TAG", "response: $oauthKeyResponse")
                 if (!oauthKeyResponse.isSuccessful) {
                     handleError("Failed to get OauthKey")
                     return@launch
@@ -81,22 +77,29 @@ class LoginActivity : AppCompatActivity() {
                         handleError("O_u response is null")
                         return@launch
                     }
-                Log.d("TAG", "response: $oauthkey")
 
-                // No hacemos el envio de dicho post
-
-                val sessKeyResponse = instance.createSesskey(o_u = ou, oauthkey = oauthkey)
+                val uc =
+                    oauthKeyResponse.body()?.id ?: run {
+                        handleError("O_u response is null")
+                        return@launch
+                    }
+                val sessKeyResponse =
+                    instance.createSesskey(o_u = ou, u_c = uc, oauthkey = oauthkey)
                 if (!sessKeyResponse.isSuccessful) {
                     handleError("Failed to get SessKey")
                     return@launch
                 }
-//                val sessKey = sessKeyResponse.body()?.sesskey ?: return@launch
                 val sessKey =
                     sessKeyResponse.body()?.sesskey ?: run {
                         handleError("SessKey response is null")
                         return@launch
                     }
-                Log.d("TAG", "response: sessKeyValue: $sessKey")
+                val id =
+                    sessKeyResponse.body()?.id ?: run {
+                        handleError("id is null")
+                        return@launch
+                    }
+                Log.d("TAG", "response_sesskey: uc : $id")
 
                 getSharedPreferences("Timetonic", Context.MODE_PRIVATE).edit()
                     .putString("sess_key", sessKey).apply()

@@ -1,3 +1,3 @@
-package com.srbastian.timetonic.data
+package com.srbastian.timetonic.data.login
 
 data class AppKeyResponse(val appkey: String)
